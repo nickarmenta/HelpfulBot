@@ -1,4 +1,4 @@
-<img src="https://github.com/nickarmenta/HelpfulBot/raw/master/interface.png" width="100%">
+<img src="https://raw.githubusercontent.com/nickarmenta/HelpfulBot/main/interface.png" width="100%">
 
 # HelpfulBot
 
