@@ -155,7 +155,7 @@ def PnPWizard():
   popup("Make sure to save this so that I can remember it!", "Message", False, False, blocking=True)
 end
 
-def PickCycle():
+def PickRaw():
   # Go to pick part
   movej(approachPick, a=3, v=1.5)
   movel(pickPose, a=0.25, v=0.25)
@@ -164,7 +164,7 @@ def PickCycle():
   movel(departPick, a=0.25, v=0.25)
 end
 
-def PlaceCycle():
+def PlaceRaw():
   movej(approachPlace, a=3, v=1.5, r=0.2)
   movel(placePose, a=0.25, v=0.25)
   set_digital_out(gripperOutput, False)
@@ -172,19 +172,36 @@ def PlaceCycle():
   movel(departPlace, a=0.25, v=0.25)
 end
 
+def PickFinished():
+  # Pick part
+  movej(approachPlace, a=3, v=1.5, r=0.2)
+  movel(placePose, a=0.25, v=0.25)
+  set_digital_out(gripperOutput, True)
+  sleep(0.5)
+  movel(departPlace, a=0.25, v=0.25)
+end
+
+def PlaceFinished():
+  movej(cur_approach, a=3, v=1.5)
+  movel(cur_position, a=0.25, v=0.25)
+  set_digital_out(gripperOutput, False)
+  sleep(0.5)
+  movel(cur_depart, a=0.25, v=0.25)
+end
+
 def RunProgram():
   local setupCheck=request_boolean_from_primary_client("Have you already taught me what to do?")
   if (setupCheck==False or pickPose[0]==0):
     PnPWizard()
   end
-  local partDetected=read_input_boolean_register(partInput)
+  local partDetected=get_digital_in(partInput)
   local cycleFinished=False
   while (True):
     # If part is ready
     if (partDetected==True):
-      PickCycle()
+      PickRaw()
       movej(relayPose, a=3, v=1.5, r=0.2)
-      PlaceCycle()
+      PlaceRaw()
       movej(relayPose, a=3, v=1.5, r=0.2)
 
       # Pulse cycle output
@@ -193,26 +210,16 @@ def RunProgram():
       set_digital_out(cycleOutput, False)
 
       while (cycleFinished==False):
-        cycleFinished=read_input_boolean_register(cycleInput)
+        cycleFinished=get_digital_in(cycleInput)
       end
 
-      # Pick part
-      movej(approachPlace, a=3, v=1.5, r=0.2)
-      movel(placePose, a=0.25, v=0.25)
-      set_digital_out(gripperOutput, True)
-      sleep(0.5)
-      movel(departPlace, a=0.25, v=0.25)
-
+      PickFinished()
       # Palletize routine
       CreatePalletPose()
       movej(relayPose, a=3, v=1.5, r=0.2)
-      movej(cur_approach, a=3, v=1.5)
-      movel(cur_position, a=0.25, v=0.25)
-      set_digital_out(gripperOutput, False)
-      sleep(0.5)
-      movel(cur_depart, a=0.25, v=0.25)
+      PlaceFinished()
     end
-    partDetected=read_input_boolean_register(partInput)
+    partDetected=get_digital_in(partInput)
   end
 end
 

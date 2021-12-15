@@ -4,8 +4,9 @@ HelpfulBot uses a "teach by prompt" approach to cobot machine tending. Instead o
 
 ## Usage
 
-1. Save all files in ['UR/'](UR/) to your robot's program directory.
-2. Load ['HelpfulBot'](UR/HelpfulBot.urp) and follow the prompts!
+1. Save all files in [UR/](UR/) to your robot's program directory.
+2. Load [HelpfulBot](UR/HelpfulBot.txt) and follow the prompts!
+3. Make sure to save the program under a new name once configured!
 
 ### To-do
 
