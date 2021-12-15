@@ -1,14 +1,15 @@
 # HelpfulBot
 
-HelpfulBot uses a "teach by prompt" approach to cobot programming. Instead of hard-coding, users are provided a list of questions to guide them towards a final program. This creates an even more user-friendly interface that lowers the amount of training required for robot programming.
+HelpfulBot uses a "teach by prompt" approach to cobot machine tending. Instead of manually programming, users are provided a list of questions to guide them towards a final program. This creates an even more user-friendly interface that eliminates the need for training.
 
 ## Usage
 
-IN PROGRESS. Currently this is only a function call for one-time programming that is not saved into memory.
+1. Save all files in ['UR/'](UR/) to your robot's program directory.
+2. Load ['HelpfulBot'](UR/HelpfulBot.urp) and follow the prompts!
 
 ### To-do
 
-* Save global variables to installation file
+* Create shell scripts to automate program upload
 * Add additional functionality outside of machine tending
-* Encode program into QR code for instantaneous loading via interpreter port 30002
+* Encode script file into QR code for instantaneous loading via interpreter port 30002
 * Incorporate NLP for further application guidance and more conversational instruction

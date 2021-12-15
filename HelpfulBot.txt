@@ -1,5 +1,0 @@
- Program
-   BeforeStart
-     Script: PickAndPlace.script
-   Robot Program
-     RunProgram()

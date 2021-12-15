@@ -1,3 +1,6 @@
+# Author: Nick Armenta
+# Date: 12/15/21
+
 def Setup():
   # Setup sequence and prompts
   partMass=request_float_from_primary_client("How much does your part weigh in kilos? (2.2lbs/kg)")
@@ -174,9 +177,11 @@ def RunProgram():
   if (setupCheck==False or pickPose[0]==0):
     PnPWizard()
   end
+  local partDetected=read_input_boolean_register(partInput)
+  local cycleFinished=False
   while (True):
     # If part is ready
-    if (partInput==True):
+    if (partDetected==True):
       PickCycle()
       movej(relayPose, a=3, v=1.5, r=0.2)
       PlaceCycle()
@@ -187,8 +192,8 @@ def RunProgram():
       sleep(0.5)
       set_digital_out(cycleOutput, False)
 
-      while (cycleInput==False):
-        continue
+      while (cycleFinished==False):
+        cycleFinished=read_input_boolean_register(cycleInput)
       end
 
       # Pick part
@@ -207,5 +212,8 @@ def RunProgram():
       sleep(0.5)
       movel(cur_depart, a=0.25, v=0.25)
     end
+    partDetected=read_input_boolean_register(partInput)
   end
 end
+
+RunProgram()
