@@ -1,0 +1,27 @@
+#
+#Wed Dec 15 20:24:30 CET 2021
+partMass=1
+CoG_Z=25.4
+palletGap=50.8
+palletRows=4
+palletCols=4
+activeRow=0
+activeCol=0
+gripperOutput=0
+cycleOutput=1
+partInput=0
+cycleInput=1
+pickPose=p[0,0,0,0,0,0]
+approachPick=p[0,0,0,0,0,0]
+departPick=p[0,0,0,0,0,0]
+relayPose=p[0,0,0,0,0,0]
+placePose=p[0,0,0,0,0,0]
+approachPlace=p[0,0,0,0,0,0]
+departPlace=p[0,0,0,0,0,0]
+palletPose=p[0,0,0,0,0,0]
+approachPallet=p[0,0,0,0,0,0]
+departPallet=p[0,0,0,0,0,0]
+palletOffset=p[0,0,0,0,0,0]
+cur_approach=p[0,0,0,0,0,0]
+cur_position=p[0,0,0,0,0,0]
+cur_depart=p[0,0,0,0,0,0]
