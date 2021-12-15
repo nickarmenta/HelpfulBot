@@ -1,6 +1,6 @@
 # HelpfulBot
 
-HelpfulBot uses a "teach by prompt" approach to cobot programming. Instead of hard-coding, users are provided a list of questions to guide them towards a final program. This creates a even more user-friendly interface that lowers the amount of training required for robot programming.
+HelpfulBot uses a "teach by prompt" approach to cobot programming. Instead of hard-coding, users are provided a list of questions to guide them towards a final program. This creates an even more user-friendly interface that lowers the amount of training required for robot programming.
 
 ## Usage
 
