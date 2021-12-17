@@ -2,15 +2,19 @@
 # Date: 12/15/21
 
 def Setup():
+  # Grab values from installation file
+  gripperMass=get_target_payload()
+  CoG=get_target_payload_cog()
+  tcpOffset=get_tcp_offset()
+end
+
+def Prompts():
   # Setup sequence and prompts
   partMass=request_float_from_primary_client("How much does your part weigh in kilos? (2.2lbs/kg)")
-  # Get part length (mm)
-  local height=request_float_from_primary_client("How tall is the part in millimeters? (25.4mm/in)")
-  # Create new center of gravity based on part length
-  CoG_Z=height/2000+.05
-  # Get part diameter (mm)
-  local width=request_float_from_primary_client("How wide is the part in millimeters? (24.5mm/in)")
-  palletGap=width/500
+  # Get part length in meters
+  partHeight=request_float_from_primary_client("How tall is the part in millimeters? (25.4mm/in)")/1000
+  # Get part diameter in meters
+  partWidth=request_float_from_primary_client("How wide is the part in millimeters? (24.5mm/in)")/1000
   # Get rows in pallet
   palletRows=request_integer_from_primary_client("How many rows do you want to make?")
   # Get columns in pallet
@@ -26,12 +30,22 @@ def Setup():
 end
 
 def AlignRobot(rawPose):
-  set_tcp(p[0.0,0.0,0.0,0.0,0.0,0.0])
-  set_payload(0.0,[0.0,0.0,0.0])
-  set_gravity([0.0, 0.0, 9.82])
   local newPose=rawPose
   newPose[5]=0.0
   return newPose
+end
+
+def Pick():
+  set_digital_out(gripperOutput, True)
+  local payload=partMass+gripperMass
+  set_payload(payload,[CoG[0],CoG[1],partHeight/2+.05])
+  sleep(0.5)
+end
+
+def Place():
+  set_digital_out(gripperOutput, False)
+  set_payload(gripperMass,CoG)
+  sleep(0.5)
 end
 
 def TeachPick():
@@ -46,21 +60,18 @@ def TeachPick():
     end_freedrive_mode()
     pickPose=AlignRobot(get_actual_tcp_pose())
     movel(pickPose, a=0.125, v=0.2)
-    freedrive_mode()
-    set_digital_out(gripperOutput, True)
-    sleep(0.5)
+    freedrive_mode(freeAxes=[1,1,0,0,0,0], feature="tool")
+    Pick() 
     end_freedrive_mode()
     
     # Create positions and test
-    approachPick=pose_trans(pickPose, p[0,0,-CoG_Z*2,0,0,0])
-    departPick=pose_trans(pickPose, p[0,0,-CoG_Z,0,0,0])
+    approachPick=pose_trans(pickPose, p[0,0,-partHeight/2,0,0,0])
+    departPick=pose_trans(pickPose, p[0,0,-partHeight,0,0,0])
     popup("Alright let me try!", "Message", False, False, blocking=True)
-    set_digital_out(gripperOutput, False)
-    sleep(0.5)
+    Place()
     movel(approachPick, a=0.125, v=0.2)
     movel(pickPose, a=0.125, v=0.2)
-    set_digital_out(gripperOutput, True)
-    sleep(0.5)
+    Pick()
     movel(departPick, a=0.125, v=0.2)
 
     # Confirm position correct
@@ -70,7 +81,7 @@ end
 
 def TeachRelay():
   # Move to relay position
-  freedrive_mode()
+  freedrive_mode(freeAxes=[1,1,1,0,0,0], feature="tool")
   popup("Move me to a safe spot between the pick and place points", "Message", False, False, blocking=True)
   end_freedrive_mode()
   relayPose=get_actual_tcp_pose()
@@ -83,20 +94,17 @@ def TeachPlace():
     freedrive_mode()
     popup("Move me to where you want to put your part!", "Message", False, False, blocking=True)
     end_freedrive_mode()
-    placePose=AlignRobot(get_actual_tcp_pose())
-    set_digital_out(gripperOutput, False)
-    sleep(0.5)
+    placePose=get_actual_tcp_pose()
+    Place()
     
     # Create positions and test
-    approachPlace=pose_trans(placePose, p[0,0,-CoG_Z*2,0,0,0])
-    departPlace=pose_trans(placePose, p[0,0,-CoG_Z,0,0,0])
+    approachPlace=pose_trans(placePose, p[0,0,-partHeight,0,0,0])
+    departPlace=pose_trans(placePose, p[0,0,-partHeight/2,0,0,0])
     popup("Alright let me try!", "Message", False, False, blocking=True)
-    set_digital_out(gripperOutput, True)
-    sleep(0.5)
+    Pick()
     movel(approachPlace, a=0.125, v=0.2)
     movel(placePose, a=0.125, v=0.2)
-    set_digital_out(gripperOutput, True)
-    sleep(0.5)
+    Place()
     movel(departPlace, a=0.125, v=0.2)
 
     # Confirm position correct
@@ -108,30 +116,29 @@ def TeachPallet():
   local palletTest=False
   while (palletTest==False):
     freedrive_mode()
-    popup("Move me just above where you want to start putting your finished parts", "Message", False, False, blocking=True)
+    popup("Move me to where you want to start putting your parts", "Message", False, False, blocking=True)
     end_freedrive_mode()
-    local seekPose=AlignRobot(pose_add(p[0,0,-.075,0,0,0], get_actual_tcp_pose()))
-    # Do downward force move to surface
-    zero_ftsensor()
-    force_mode(p[0.0,0.0,0.0,0.0,0.0,0.0], [0, 0, 1, 1, 1, 0], [0.0, 0.0, -5.0, 0.05, 0.05, 0.1], 3, [0.1, 0.1, 0.15, 0.05, 0.05, 0.3])
-    movel(seekPose, a=0.05, v=0.05)
-    end_force_mode()
-    stopl(5.0)
+    
     # Create first pallet position just above surface
     palletPose=AlignRobot(pose_add(p[0,0,0.003,0,0,0], get_actual_tcp_pose()))
-    approachPallet=pose_add(p[0,0,-CoG_Z*1.3,0,0,0], palletPose)
-    departPallet=pose_trans(palletPose, p[0,0,-CoG_Z,0,0,0])
+    movel(palletPose, a=0.125, v=0.2)
+    Place()
+    approachPallet=pose_add(p[0,0,-partHeight,0,0,0], palletPose)
+    departPallet=pose_trans(palletPose, p[0,0,-partHeight/2,0,0,0])
+
     # Test pallet routine
     popup("Alright let me try!", "Message", False, False, blocking=True)
+    Pick()
     movel(approachPallet, a=0.125, v=0.2)
     movel(palletPose, a=0.125, v=0.2)
-    set_digital_out(gripperOutput, False)
+    Place()
     movel(departPallet, a=0.125, v=0.2)
     palletTest=request_boolean_from_primary_client("Did I place the part okay?")
   end
 end
 
 def CreatePalletPose():
+  local palletGap=partWidth*1.5
   palletOffset=p[activeRow*palletGap,activeCol*palletGap,0,0,0,0]
   cur_approach=pose_add(approachPallet, palletOffset)
   cur_position=pose_add(palletPose, palletOffset)
@@ -146,8 +153,9 @@ def CreatePalletPose():
   end
 end
   
-def PnPWizard():
+def Wizard():
   Setup()
+  Prompts()
   TeachPick()
   TeachRelay()
   TeachPlace()
@@ -159,16 +167,14 @@ def PickRaw():
   # Go to pick part
   movej(approachPick, a=3, v=1.5)
   movel(pickPose, a=0.25, v=0.25)
-  set_digital_out(gripperOutput, True)
-  sleep(0.5)
+  Pick()
   movel(departPick, a=0.25, v=0.25)
 end
 
 def PlaceRaw():
   movej(approachPlace, a=3, v=1.5, r=0.2)
   movel(placePose, a=0.25, v=0.25)
-  set_digital_out(gripperOutput, False)
-  sleep(0.5)
+  Place()
   movel(departPlace, a=0.25, v=0.25)
 end
 
@@ -176,23 +182,21 @@ def PickFinished():
   # Pick part
   movej(approachPlace, a=3, v=1.5, r=0.2)
   movel(placePose, a=0.25, v=0.25)
-  set_digital_out(gripperOutput, True)
-  sleep(0.5)
+  Pick()
   movel(departPlace, a=0.25, v=0.25)
 end
 
 def PlaceFinished():
   movej(cur_approach, a=3, v=1.5)
   movel(cur_position, a=0.25, v=0.25)
-  set_digital_out(gripperOutput, False)
-  sleep(0.5)
+  Place()
   movel(cur_depart, a=0.25, v=0.25)
 end
 
 def RunProgram():
   local setupCheck=request_boolean_from_primary_client("Have you already taught me what to do?")
   if (setupCheck==False or pickPose[0]==0):
-    PnPWizard()
+    Wizard()
   end
   local partDetected=get_digital_in(partInput)
   local cycleFinished=False
@@ -202,15 +206,16 @@ def RunProgram():
       PickRaw()
       movej(relayPose, a=3, v=1.5, r=0.2)
       PlaceRaw()
-      movej(relayPose, a=3, v=1.5, r=0.2)
+      movej(relayPose, a=3, v=1.5)
 
       # Pulse cycle output
       set_digital_out(cycleOutput, True)
-      sleep(0.5)
+      sleep(0.1)
       set_digital_out(cycleOutput, False)
 
       while (cycleFinished==False):
         cycleFinished=get_digital_in(cycleInput)
+        sync()
       end
 
       PickFinished()
@@ -218,8 +223,11 @@ def RunProgram():
       CreatePalletPose()
       movej(relayPose, a=3, v=1.5, r=0.2)
       PlaceFinished()
+      movej(relayPose, a=3, v=1.5, r=0.2)
+      movej(approachPick, a=3, v=1.5)
     end
     partDetected=get_digital_in(partInput)
+  sync()
   end
 end
 

@@ -1,7 +1,11 @@
 #
 #Wed Dec 15 20:24:30 CET 2021
+gripperMass=1
+CoG=[0,0,0]
+tcpOffset=p[0,0,0,0,0,0]
 partMass=1
-CoG_Z=25.4
+partHeight=1
+partWidth=1
 palletGap=50.8
 palletRows=4
 palletCols=4

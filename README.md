@@ -7,12 +7,13 @@ HelpfulBot uses a "teach by prompt" approach to cobot machine tending. Instead o
 ## Usage
 
 1. Save all files in [UR/](UR/) to your robot's program directory.
-2. Load [HelpfulBot](UR/HelpfulBot.txt) and follow the prompts!
-3. Make sure to save the program under a new name once configured!
+2. Load [HelpfulBot](UR/HelpfulBot.txt) and follow the prompts.
+3. Make sure to save the program under a new name once configured.
 
 ### To-do
 
+* Add speed parameters
 * Create shell scripts to automate program upload via USB
 * Add additional functionality outside of machine tending
-* Encode script file into QR code for instantaneous loading via interpreter port 30002
+* Encode script file into QR code for instantaneous loading via interpreter port 30002 (barcode size limit?)
 * Incorporate NLP for further application guidance and more conversational instruction
